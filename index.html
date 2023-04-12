@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Whack A Mole!</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <h1>Whack-a-mole! <span class="score">0</span></h1>
+  <div class="a-item">
+    <p class="a-item-01" id="countdown"></p>
+    <p  class="a-item-02" id="bestScore"></p>  
+    <button class="a-item-03" onClick="startGame()">Start!</button>
+  </div>
+
+
+
+
+  <div class="game">
+    <div class="hole hole1">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole2">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole3">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole4">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole5">
+      <div class="mole"></div>
+    </div>
+    <div class="hole hole6">
+      <div class="mole"></div>
+    </div>
+  </div>
+
+<script>
+  const holes = document.querySelectorAll('.hole');
+  const scoreBoard = document.querySelector('.score');
+  const moles = document.querySelectorAll('.mole');
+  //random bir şekile hole seçerken aynı veriyi seçmesi durumuyla karşılaşabiliriz bunun önüne geçebilmek için eğer önceki, yani aslında son hole değeri
+  //bir sonrakiyle aynıysa fonsksiyonu tetikletip çalıştırmamız gerekir.
+  let lastHole;
+  let timeUp= false;
+  let score =0;
+  var biggestScore=[];
+  // Geri sayım başlatılacak zamanı belirleyin
+
+  function higgestScore(){
+    if (localStorage.getItem("higgest")) {
+      var localData = JSON.parse(localStorage.getItem("higgest"));
+      biggestScore = localData;
+      biggestScore.sort((a,b) => b.score - a.score);
+      let bestScore = biggestScore[0]
+      document.getElementById("bestScore").innerText ="Youre highest score=" + bestScore.score;
+    }
+  }
+
+  function randomTime(min, max) {
+    return Math.round(Math.random() * (max - min) + min);
+  }
+
+  function randomHole(holes) {
+    const idx = Math.floor(Math.random() * holes.length);
+    const hole = holes[idx];
+    if (lastHole === hole) {
+      return randomHole(holes)
+    }
+    lastHole = hole;
+    return hole;
+  }
+
+  function peep(){
+    const time = randomTime(200,1000);
+    const hole = randomHole(holes);
+    hole.classList.add("up")
+    
+    setTimeout(() => {
+      hole.classList.remove("up")
+      if (!timeUp) peep();
+    }, time)
+  }
+
+  function startGame(){
+    startCountDown()
+    scoreBoard.textContent =0;
+    timeUp= false;
+    score=0;
+    peep()
+    //bu duruma ek olarak sayaç koyalım ve kalan süreyi göstersin
+};
+
+function startCountDown(){
+  document.getElementById("countdown").style.display ="block"
+  var countDownTime = 30;
+  var countdownDate = new Date().getTime() + (countDownTime * 1000);
+  var x = setInterval(function() {
+    // Şu anki zamanı alın
+    var now = new Date().getTime();
+    // Geri sayımı bitirme zamanından kalan süreyi hesaplayın
+    var distance = countdownDate - now;
+    // Dakika ve saniye değerlerini hesaplayın
+    var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    // Sayaç metnini güncelleyin
+    document.getElementById("countdown").innerHTML = minutes + " dakika " + seconds + " saniye ";
+    // Geri sayım tamamlandıysa, sayaçı durdurun ve mesaj gösterin
+    if (distance < 0) {
+      clearInterval(x);
+      document.getElementById("countdown").innerHTML = "Countdown is complate!";
+      timeUp = true;
+      var scoredata = {score};
+      biggestScore.push(scoredata);
+      localStorage.setItem("higgest", JSON.stringify(biggestScore))
+    }
+  }, 1000);
+  }
+
+ function bonk(e){
+    if (!e.isTrusted) return;
+    score++;
+    this.parentNode.classList.remove('up');
+    scoreBoard.textContent = score;
+    
+  }
+ 
+  moles.forEach(mole => mole.addEventListener("click",bonk) )
+  document.addEventListener("DOMContentLoaded", higgestScore)
+</script>
+</body>
+</html>
